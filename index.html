@@ -3,36 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>醫時之選 - 互動教學遊戲</title>
+    <title>醫時之選 - 互動教學遊戲 v4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; }
         .flashback-active { filter: sepia(0.5) contrast(1.1); }
-        .bg-transition { transition: background-image 0.5s ease-in-out; }
+        .bg-transition { transition: background-image 0.5s ease-in-out; background-size: cover; background-position: center; }
         .btn-hover { transition: transform 0.1s, background-color 0.2s; }
         .btn-hover:hover { transform: scale(1.02); }
     </style>
 </head>
 <body class="bg-slate-900 min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-3xl w-full bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border-4 border-blue-500 flex flex-col h-[750px]">
+    <div class="max-w-3xl w-full bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border-4 border-blue-600 flex flex-col h-[780px] relative">
         
-        <div id="visual-area" class="relative h-[350px] w-full bg-cover bg-center bg-transition flex flex-col items-center justify-center" style="background-image: url('https://r.jina.ai/i/67554972-0056-4c4c-8594-555e76813352');">
+        <div id="visual-area" class="relative h-[350px] w-full bg-transition flex flex-col items-center justify-center" style="background-image: url('https://r.jina.ai/i/67554972-0056-4c4c-8594-555e76813352');">
             
-            <div id="flashback-tag" class="absolute top-4 left-4 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-lg hidden animate-bounce">
+            <div id="flashback-tag" class="absolute top-4 left-4 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-lg hidden animate-bounce z-20">
                 📽 教室閃回中...
             </div>
 
-            <div id="character-sprite" class="text-9xl drop-shadow-2xl">🤒</div>
+            <div id="character-sprite" class="text-9xl drop-shadow-2xl z-10 transition-transform duration-300">🤒</div>
 
-            <div id="energy-bar-container" class="absolute bottom-0 left-0 right-0 h-4 bg-gray-800/50 hidden">
+            <div id="energy-bar-container" class="absolute bottom-0 left-0 right-0 h-4 bg-gray-800/50 hidden z-20">
                 <div id="energy-fill" class="h-full transition-all duration-1000 bg-green-400" style="width: 0%"></div>
             </div>
         </div>
 
         <div class="flex-1 bg-slate-900 p-6 flex flex-col overflow-hidden">
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-4 min-h-[140px] shadow-sm">
-                <h2 id="speaker-name" class="text-blue-400 font-bold text-xl mb-2 tracking-widest">主角</h2>
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 mb-4 min-h-[140px] shadow-sm">
+                <h2 id="speaker-name" class="text-blue-400 font-black text-xl mb-2 tracking-widest">主角</h2>
                 <p id="dialogue-text" class="text-slate-100 text-lg leading-relaxed"></p>
             </div>
 
@@ -63,68 +63,135 @@
         };
 
         const gameScript = [
-            { step:0, speaker:'主角', text:'「啊……頭有點痛，可能感冒了。要去看醫生，但……去哪裡比較好？」\n（主角靠著走廊欄杆，望著遠方思考——畫面邊緣開始柔化，進入閃回）', bg: IMGS.school, sprite: '🤒', options:[{text:'進入閃回', next:1}] },
-            { step:1, speaker:'老師', text:'「同學們，台灣的醫療體系分為四個層級。第一級是診所，處理感冒、輕傷這類輕症；第二級是地區醫院，第三級是區域醫院，這兩個層級處理需要進一步檢查或治療的病況；第四級是醫學中心，使用頂尖設備，救治最嚴重的病患。每個層級消耗的醫療量能，是完全不同的。」', isFlashback: true, sprite: '👩‍🏫', options:[{text:'回到現實', next:2}] },
-            { step:2, speaker:'主角', text:'「對，老師說過……四個層級，不同的狀況，去不同的地方。」', sprite: '🤒', options:[
-                {text:'A. 診所 (就在附近，今天就能看到醫生)', next:3, choice:['c1','A'], energy:20},
-                {text:'B. 地區醫院或區域醫院 (設備比診所好，感覺比較安心)', next:3, choice:['c1','B'], energy:50},
-                {text:'C. 醫學中心 (最頂尖的醫院，應該最保險)', next:3, choice:['c1','C'], energy:100}
-            ]},
-            { step:3, speaker:'', onEnter: () => {
-                ui.energyContainer.classList.remove('hidden');
-                if(state.choices.c1 === 'A') { ui.visualArea.style.backgroundImage = `url('${IMGS.clinic}')`; return '（明亮的小診所，候診區幾個人，很快輪到主角。醫生親切問診，主角拿著藥走出來，過程順利。）'; }
-                if(state.choices.c1 === 'B') { ui.visualArea.style.backgroundImage = `url('${IMGS.hospital}')`; return '（中等規模的醫院，候診區人比較多，等了一會兒。旁邊有拄拐杖、推輪椅的病患。主角有些猶豫，自己是否應該在這裡。）'; }
-                ui.visualArea.style.backgroundImage = `url('${IMGS.hospital}')`; return '（巨大的醫學中心，走廊很長，人非常多。候診號碼：186 號，目前叫到 52 號。旁邊有重症病患、救護車頻繁進出，急救警報聲不時響起。主角坐在角落茫然等待，感覺格格不入。）';
-            }, sprite: '🏥', options:[{text:'不同的地方...', next:4}] },
-            { step:4, speaker:'主角', text:'「不同的地方，對應不同的病情……每一層，消耗的醫療量能都不一樣。」\n（鏡頭拉遠，畫面出現四層示意圖。各種病患送往不同層級，醫療資源資源池的水位在劇烈波動。畫面邊緣柔化，進入閃回）', sprite: '🚰', options:[{text:'閃回：醫療量能', next:5}] },
-            { step:5, speaker:'老師', text:'「醫療量能包括了醫護人員的時間、病床、手術室、儀器設備——這些都是有限的資源。如果輕症的人佔用了高層級的醫療資源，真正需要緊急救治的重症病患，就可能等不到幫助。這不只影響一個人，而是整個醫療系統的運作。」', isFlashback: true, sprite: '👩‍🏫', options:[{text:'回到資源池畫面', next:6}] },
-            { step:6, speaker:'', text:'（旁白/動作描述：水位明顯下降。警示：醫療量能不足，系統超載。一個重症病患的擔架推進來，護理師焦急：「沒有床位了！」）', sprite: '🚑', options:[{text:'如果大家都去大醫院？', next:7}] },
-            { step:7, speaker:'', text:'如果輕症重症都去醫學中心，整個醫療系統會發生什麼事？', sprite: '🤔', options:[
-                {text:'A. 醫療量能嚴重不足', next:8, choice:['c2','A']},
-                {text:'B. 健保費用會大幅增加', next:8, choice:['c2','B']},
-                {text:'C. 醫院自己會調配好', next:8, choice:['c2','C']}
-            ]},
-            { step:8, speaker:'', text:'（畫面：手機螢幕，朋友傳來訊息：「我最近有點咳嗽，要去醫學中心看，你覺得怎樣？」）', sprite: '📱', options:[
-                {text:'A. 隨便你，去哪都可以', next:9, choice:['c3','A']},
-                {text:'B. 去診所就好，輕症不需要去大醫院', next:9, choice:['c3','B']},
-                {text:'C. 去大醫院比較安心，去吧', next:9, choice:['c3','C']}
-            ]},
-            { step:9, speaker:'', text:'（主角陪著朋友在診所等候，朋友臉色蒼白。同樣的診所，兩週來了三次，症狀卻沒有明顯好轉。醫生皺著眉頭，翻看病歷，表情凝重。畫面邊緣柔化，進入閃回）', sprite: '🏥', options:[{text:'閃回：雙向轉診', next:10}] },
-            { step:10, speaker:'老師', text:'「當診所的醫療處置已達到極限，正確的做法是轉診。轉診是雙向的——當病況複雜時，從診所轉往地區醫院或更高層級；當病患康復、進入追蹤階段，可以從大醫院轉回診所。這樣，每個人都能在最適合自己病情的地方，得到最好的照護。」', isFlashback: true, sprite: '👩‍🏫', options:[{text:'回到診所', next:11}] },
-            { step:11, speaker:'醫師', text:'「你的狀況需要更進一步的檢查，我幫你安排轉診到地區醫院。」\n這個病患，應該怎麼做？', sprite: '👨‍⚕️', options:[
-                {text:'A. 繼續在診所觀察', next:12, choice:['c4','A']},
-                {text:'B. 接受轉診到地區醫院', next:12, choice:['c4','B']},
-                {text:'C. 直接去醫學中心', next:12, choice:['c4','C']}
-            ]},
-            { step:12, speaker:'？？？', text:'（畫面閃爍，出現電視雜訊效果）\n「……有人嗎……」\n「……請求幫助……」\n（健寶的飛船從畫面邊緣緩緩出現，他直視著玩家，語氣誠懇）', sprite: '📺', options:[{text:'聽健寶說話', next:13}] },
-            { step:13, speaker:'健寶', text:'「嗨，我是健寶。你剛剛在課堂上學過的那些……你以為你忘了。但我都看到了。」', bg: IMGS.slime, sprite: '🤖', options:[{text:'檢視第一選擇', next:14}] },
-            { step:14, speaker:'健寶', onEnter: () => {
-                if(state.choices.c1 === 'A') return '「你選擇了去診所看感冒。你省下的醫療量能，讓地區醫院多出了一個看診空位。那個空位，讓一個等待手術評估的病患，提前三天得到了安排。」';
-                if(state.choices.c1 === 'B') return '「你選擇了去地區醫院或區域醫院看感冒。你的病況，在診所就可以得到妥善處理。你佔用的那個看診時段，讓一個需要評估的病患，多等了一個禮拜。」';
-                return '「你選擇了去醫學中心看感冒。你等了兩個小時才看到醫生。你消耗的醫療量能，是去診所的好幾倍。在你等待的那兩個小時裡，一個需要照ＣＴ的病患，因為資源被佔用，等了超過三個小時。你沒有惡意。但你的選擇仍消耗了很多醫療量能。」';
-            }, sprite: '🤖', options:[{text:'關於量能危機的看法', next:15}] },
-            { step:15, speaker:'健寶', onEnter: () => {
-                if(state.choices.c2 === 'A') return '「你看到了——當醫療量能被錯用，真正需要的人反而等不到。這不是健保的問題，這是每個人選擇的總和。」';
-                if(state.choices.c2 === 'B') return '「費用增加是一個後果，但更直接的問題是——醫療量能已經不夠用了。當醫護人員的時間、床位和設備全都被佔滿，錢再多也換不回那些失去的時間。」';
-                return '「醫護人員已經很努力了。但醫療量能不是無限的。當系統超載，靠醫院自己調配是不夠的。改變，需要每個人做出正確的選擇。」';
-            }, sprite: '🤖', options:[{text:'關於倡議的選擇', next:16}] },
-            { step:16, speaker:'健寶', onEnter: () => {
-                if(state.choices.c3 === 'B') return '「你說的這句話，就是史萊姆星球現在最需要的。能夠告訴別人正確的選擇，這不只是知識——這是保護整個醫療系統的力量。」';
-                return '「你沉默了，或是同意了他去大醫院。但你已經知道正確的答案了。下次，你可以說出來。改變，從一句話開始。」';
-            }, sprite: '🤖', options:[{text:'關於轉診的抉擇', next:17}] },
-            { step:17, speaker:'健寶', onEnter: () => {
-                if(state.choices.c4 === 'B') return '「你支持你的朋友轉診到地區醫院。這正是雙向轉診的意義。在診所能力範圍內盡力，超過了就轉診，康復後再轉回追蹤——這才是對病患真正好的選擇。」';
-                if(state.choices.c4 === 'A') return '「兩週沒有好轉，繼續等待可能讓病情延誤。轉診，不是放棄診所，而是把病患送到當下最適合他的地方。這才是對他好。」';
-                return '「直接去醫學中心，消耗的醫療量能遠超過必要。正確的步驟是：先轉到地區醫院評估，再由醫生判斷是否需要更高層級——這才是雙向轉診的精神。」';
-            }, sprite: '🤖', options:[{text:'前進史萊姆星球', next:18}] },
-            { step:18, speaker:'健寶', text:'「在另一個星球——史萊姆星球，正在發生一模一樣的事。病人越來越多，醫療量能越來越少，沒有人知道該把誰送去哪裡。你剛剛在課堂上學到的，不只是知識。那是現在唯一能救他們的能力。」', sprite: '🤖', options:[
-                {text:'我願意，我已經準備好了', next:19, choice:['c5','A']},
-                {text:'我要用行動證明', next:19, choice:['c5','B']}
-            ]},
-            { step:19, speaker:'健寶', onEnter: () => {
-                let prefix = state.choices.c5 === 'A' ? '「你知道的，比你想像的更多。現在去證明它。」\n' : '「史萊姆星球在等你。每一個選擇，都算數。」\n';
-                return prefix + '「記住——把每一個人，送到對的地方。不是最大的地方，是最適合他病情的地方。這不只是遊戲，這是你在課堂上學到的，真實的力量。救援開始！」';
-            }, sprite: '✨', options:[{text:'救援開始！ (重新開始)', next:0, reset:true}] }
+            { // 0
+                speaker: "主角", text: "「啊……頭有點痛，可能感冒了。要去看醫生，但……去哪裡比較好？」\n（主角靠著走廊欄杆，望著遠方思考）", bg: IMGS.school, sprite: "🤒",
+                options: [{ text: "進入閃回：回憶老師說過的話", next: 1 }]
+            },
+            { // 1
+                speaker: "老師", text: "「同學們，台灣的醫療體系分為四個層級。第一級是診所，處理感冒、輕傷這類輕症；第二級是地區醫院，第三級是區域醫院，這兩個層級處理需要進一步檢查或治療的病況；第四級是醫學中心，使用頂尖設備，救治最嚴重的病患。每個層級消耗的醫療量能，是完全不同的。」", bg: IMGS.school, isFlashback: true, sprite: "👩‍🏫",
+                options: [{ text: "回到現實做出決定", next: 2 }]
+            },
+            { // 2
+                speaker: "主角", text: "「對，老師說過……四個層級，不同的狀況，去不同的地方。」", sprite: "🤒",
+                options: [
+                    { text: "A. 診所 (就在附近，今天就能看到醫生)", next: 3, choice: ['c1', 'A'], energy: 20 },
+                    { text: "B. 地區醫院或區域醫院 (設備較好，感覺較安心)", next: 3, choice: ['c1', 'B'], energy: 50 },
+                    { text: "C. 醫學中心 (最頂尖的醫院，應該最保險)", next: 3, choice: ['c1', 'C'], energy: 100 }
+                ]
+            },
+            { // 3
+                speaker: "", onEnter: () => {
+                    ui.energyContainer.classList.remove('hidden');
+                    if(state.choices.c1 === 'A') { ui.visualArea.style.backgroundImage = `url('${IMGS.clinic}')`; return "（主角走進診所。明亮的小診所，候診區幾個人，很快輪到主角。醫生親切問診，主角拿著藥走出來，過程順利。）"; }
+                    if(state.choices.c1 === 'C') { ui.visualArea.style.backgroundImage = `url('${IMGS.hospital}')`; return "（主角走進醫學中心。走廊很長，人非常多。候診號碼：186 號。主角坐在角落茫然等待，感覺格格不入。醫療量能消耗極高。）"; }
+                    ui.visualArea.style.backgroundImage = `url('${IMGS.hospital}')`; return "（主角走進地區醫院。候診區人比較多。旁邊有拄拐杖、推輪椅的病患。主角有些猶豫，自己是否應該在這裡。）";
+                },
+                sprite: "🏥",
+                options: [{ text: "不同的地方，對應不同的病情...", next: 4 }]
+            },
+            { // 4
+                speaker: "主角", text: "「不同的地方，對應不同的病情……每一層，消耗的醫療量能都不一樣。」\n（畫面切換至醫療量能資源示意圖，醫療資源正在波動）", sprite: "🚰",
+                options: [{ text: "閃回：醫療量能的定義", next: 5 }]
+            },
+            { // 5
+                speaker: "老師", text: "「醫療量能包括了醫護人員的時間、病床、手術室、儀器設備——這些都是有限的資源。如果輕症的人佔用了高層級的醫療資源，真正需要緊急救治的重症病患，就可能等不到幫助。」", isFlashback: true, sprite: "👩‍🏫",
+                options: [{ text: "回到現場", next: 6 }]
+            },
+            { // 6
+                speaker: "", text: "（畫面出現警示：醫療量能不足。一個重症病患的擔架推進來，護理師焦急地喊道：「沒有床位了！」）", sprite: "🚑",
+                options: [{ text: "如果大家都去大醫院？", next: 7 }]
+            },
+            { // 7
+                speaker: "", text: "如果輕症重症都去醫學中心，整個醫療系統會發生什麼事？", sprite: "🤔",
+                options: [
+                    { text: "A. 醫療量能嚴重不足", next: 8, choice: ['c2', 'A'] },
+                    { text: "B. 健保費用會大幅增加", next: 8, choice: ['c2', 'B'] },
+                    { text: "C. 醫院自己會調配好", next: 8, choice: ['c2', 'C'] }
+                ]
+            },
+            { // 8
+                speaker: "", text: "（手機螢幕，朋友傳來訊息： 「我最近有點咳嗽，要去醫學中心看，你覺得怎樣？」）", sprite: "📱",
+                options: [
+                    { text: "A. 隨便你，去哪都可以", next: 9, choice: ['c3', 'A'] },
+                    { text: "B. 去診所就好，輕症不需要去大醫院", next: 9, choice: ['c3', 'B'] },
+                    { text: "C. 去大醫院比較安心，去吧", next: 9, choice: ['c3', 'C'] }
+                ]
+            },
+            { // 9
+                speaker: "", text: "（主角陪著朋友在診所等候，朋友兩週來了三次，症狀卻沒好轉。醫生表情凝重。）", sprite: "🏥",
+                options: [{ text: "進入閃回：雙向轉診", next: 10 }]
+            },
+            { // 10
+                speaker: "老師", text: "「當診所的醫療處置已達到極限，正確的做法是轉診。轉診是雙向的——當病況複雜時，從診所轉往地區醫院或更高層級；當病患康復，可以從大醫院轉回診所。」", isFlashback: true, sprite: "👩‍🏫",
+                options: [{ text: "聽醫師建議", next: 11 }]
+            },
+            { // 11
+                speaker: "醫師", text: "「你的狀況需要更進一步的檢查，我幫你安排轉診到地區醫院。」\n朋友在診所看了兩週都沒好轉，你覺得應該：", sprite: "👨‍⚕️",
+                options: [
+                    { text: "A. 繼續在診所觀察", next: 12, choice: ['c4', 'A'] },
+                    { text: "B. 接受轉診到地區醫院", next: 12, choice: ['c4', 'B'] },
+                    { text: "C. 直接去醫學中心", next: 12, choice: ['c4', 'C'] }
+                ]
+            },
+            { // 12
+                speaker: "？？？", text: "（畫面閃爍雜訊）\n「……有人嗎……」\n「……請求幫助……」", sprite: "📺",
+                options: [{ text: "是誰在說話？", next: 13 }]
+            },
+            { // 13
+                speaker: "健寶", text: "「嗨，我是健寶。你剛剛在課堂上學過的那些……你以為你忘了。但我都看到了。」", bg: IMGS.slime, sprite: "🤖",
+                options: [{ text: "檢視第一選擇的後果", next: 14 }]
+            },
+            { // 14: 揭示 C1
+                speaker: "健寶", onEnter: () => {
+                    if(state.choices.c1 === 'A') return "「你選了去診所。你省下的醫療量能，讓一個等待手術評估的病患，提前三天得到了安排。」";
+                    if(state.choices.c1 === 'C') return "「你選了醫學中心。你等待的兩小時，讓一名要照CT的重症者，因為資源被佔用多等了三小時。你消耗了不屬於你的量能。」";
+                    return "「你選了地區醫院。你的病診所就能處理，你佔用的時段讓一名需要複診評估的病患多等了一禮拜。」";
+                },
+                sprite: "🤖",
+                options: [{ text: "關於量能危機的看法", next: 15 }]
+            },
+            { // 15: 揭示 C2
+                speaker: "健寶", onEnter: () => {
+                    if(state.choices.c2 === 'A') return "「正確！當量能被錯用，真正需要的人反而等不到。這不是健保問題，是每個人選擇的總和。」";
+                    if(state.choices.c2 === 'B') return "「費用增加只是後果。核心問題是量能耗盡，錢再多也換不回救治重症的寶貴時間。」";
+                    return "「醫護已經很努力了，但量能不是無限的。靠醫院調配是不夠的，必須從正確就醫開始。」";
+                },
+                sprite: "🤖",
+                options: [{ text: "關於朋友倡議的決定", next: 16 }]
+            },
+            { // 16: 揭示 C3 (朋友)
+                speaker: "健寶", onEnter: () => {
+                    if(state.choices.c3 === 'B') return "「你說的這句話，就是史萊姆星球現在最需要的。告訴別人正確的選擇，就是保護系統的力量。」";
+                    return "「你沉默了。但你已經知道正確答案了。下次，你可以勇敢說出來。改變從一句話開始。」";
+                },
+                sprite: "🤖",
+                options: [{ text: "關於轉診的抉擇", next: 17 }]
+            },
+            { // 17: 揭示 C4 (轉診)
+                speaker: "健寶", onEnter: () => {
+                    if(state.choices.c4 === 'B') return "「你支持朋友接受轉診。這正是雙向轉診的精神：在診所盡力，必要時轉診，康復後回診所追蹤。」";
+                    if(state.choices.c4 === 'A') return "「兩週沒好轉應立即轉診。轉診不是放棄診所，而是把病患送往當下最適合他的地方。」";
+                    return "「直接去醫學中心消耗資源遠超必要。正確步驟是先轉往地區醫院評估。這才是醫療正義。」";
+                },
+                sprite: "🤖",
+                options: [{ text: "史萊姆星球的未來", next: 18 }]
+            },
+            { // 18
+                speaker: "健寶", text: "「在史萊姆星球，病人越來越多，量能越來越少。你學到的不只是知識，那是現在唯一能救他們的能力。你願意擔任星際救護員嗎？」",
+                sprite: "🤖",
+                options: [
+                    { text: "我願意，我已經準備好了", next: 19, choice: ['c5', 'A'] },
+                    { text: "我要用行動證明", next: 19, choice: ['c5', 'B'] }
+                ]
+            },
+            { // 19
+                speaker: "健寶", onEnter: () => {
+                    let end = state.choices.c5 === 'A' ? "「你懂得比你想像的多。現在去證明它。」" : "「史萊姆星球在等你。每一個選擇，都算數。」";
+                    return end + "\n「記住——把每一個人，送到對的地方。不是最大的地方，是最適合他病情的地方。救援開始！」";
+                },
+                sprite: "✨",
+                options: [{ text: "重新開始遊戲", next: 0, reset: true }]
+            }
         ];
 
         function render() {
@@ -140,14 +207,13 @@
             }
             
             if (data.sprite) ui.sprite.innerText = data.sprite;
-            
             ui.speaker.innerText = data.speaker || "";
             ui.text.innerText = data.onEnter ? data.onEnter() : (data.text || "");
             
             if (state.energy > 0 || state.step > 2) {
                 ui.energyContainer.classList.remove('hidden');
                 ui.energyFill.style.width = `${state.energy}%`;
-                ui.energyFill.className = state.energy <= 30 ? "h-full transition-all duration-1000 bg-green-400" : state.energy <= 60 ? "h-full transition-all duration-1000 bg-yellow-400" : "h-full transition-all duration-1000 bg-red-500";
+                ui.energyFill.className = state.energy <= 30 ? "h-full bg-green-400" : state.energy <= 60 ? "h-full bg-yellow-400" : "h-full bg-red-500";
             } else {
                 ui.energyContainer.classList.add('hidden');
             }
@@ -155,7 +221,7 @@
             ui.options.innerHTML = '';
             data.options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = "btn-hover w-full text-left p-3 rounded-lg text-white bg-slate-700 border border-slate-600 font-bold";
+                btn.className = "btn-hover w-full text-left p-3 rounded-xl text-white bg-slate-700 border border-slate-600 font-bold shadow-sm";
                 btn.innerText = opt.text;
                 btn.onclick = () => {
                     if (opt.choice) state.choices[opt.choice[0]] = opt.choice[1];
