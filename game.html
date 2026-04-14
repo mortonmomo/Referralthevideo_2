@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>醫時之選 - 互動教學遊戲 v4.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; }
+        .flashback-active { filter: sepia(0.5) contrast(1.1); }
+        .bg-transition { transition: background-image 0.5s ease-in-out; }
+        .btn-hover { transition: transform 0.1s, background-color 0.2s; }
+        .btn-hover:hover { transform: scale(1.02); }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-3xl w-full bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border-4 border-blue-500 flex flex-col h-[750px]">
+        
+        <div id="visual-area" class="relative h-[350px] w-full bg-cover bg-center bg-transition flex flex-col items-center justify-center" style="background-image: url('https://r.jina.ai/i/67554972-0056-4c4c-8594-555e76813352');">
+            
+            <div id="flashback-tag" class="absolute top-4 left-4 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-lg hidden animate-bounce">
+                📽 教室閃回中...
+            </div>
+
+            <div id="character-sprite" class="text-9xl drop-shadow-2xl">🤒</div>
+
+            <div id="energy-bar-container" class="absolute bottom-0 left-0 right-0 h-4 bg-gray-800/50 hidden">
+                <div id="energy-fill" class="h-full transition-all duration-1000 bg-green-400" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="flex-1 bg-slate-900 p-6 flex flex-col overflow-hidden">
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-4 min-h-[120px] shadow-sm">
+                <h2 id="speaker-name" class="text-blue-400 font-bold text-xl mb-2 tracking-widest">主角</h2>
+                <p id="dialogue-text" class="text-slate-100 text-lg leading-relaxed"></p>
+            </div>
+
+            <div id="options-container" class="grid gap-2 overflow-y-auto pr-1">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const IMGS = {
+            school: 'https://r.jina.ai/i/67554972-0056-4c4c-8594-555e76813352',
+            clinic: 'https://r.jina.ai/i/f3e803ae-5953-41c3-883a-874ca7150a8b',
+            hospital: 'https://r.jina.ai/i/4a76ef5f-9721-4d1a-8f8f-c07a9760778c',
+            slime: 'https://r.jina.ai/i/38f0ce25-e5f8-4820-9430-8d5460a8da77'
+        };
+
+        const state = { step: 0, energy: 0, choices: {} };
+
+        const ui = {
+            visualArea: document.getElementById('visual-area'),
+            sprite: document.getElementById('character-sprite'),
+            flashTag: document.getElementById('flashback-tag'),
+            speaker: document.getElementById('speaker-name'),
+            text: document.getElementById('dialogue-text'),
+            options: document.getElementById('options-container'),
+            energyContainer: document.getElementById('energy-bar-container'),
+            energyFill: document.getElementById('energy-fill')
+        };
+
+        const gameScript = [
+            { // 0
+                speaker: "主角", text: "「啊……頭有點痛，可能感冒了。要去看醫生，但……去哪裡比較好？」\n（主角靠著走廊欄杆，望著遠方思考）", bg: IMGS.school, sprite: "🤒",
+                options: [{ text: "進入回憶：老師提過什麼？", next: 1 }]
+            },
+            { // 1
+                speaker: "老師", text: "「同學們，台灣的醫療體系分為四個層級。第一級是診所，處理感冒、輕傷這類輕症；第二級是地區醫院，第三級是區域醫院，這兩個層級處理需要進一步檢查或治療的病況；第四級是醫學中心。每個層級消耗的醫療量能，是完全不同的。」", bg: IMGS.school, isFlashback: true, sprite: "👩‍🏫",
+                options: [{ text: "回到現實做出決定", next: 2 }]
+            },
+            { // 2
+                speaker: "主角", text: "「對，老師說過……四個層級。現在我只是普通感冒，我應該選擇哪一種？」",
+                options: [
+                    { text: "A. 基層診所 (就在附近)", next: 3, choice: ['c1', 'A'], energy: 20 },
+                    { text: "B. 地區或區域醫院", next: 3, choice: ['c1', 'B'], energy: 50 },
+                    { text: "C. 醫學中心 (最保險)", next: 3, choice: ['c1', 'C'], energy: 100 }
+                ]
+            },
+            { // 3
+                speaker: "", onEnter: () => {
+                    ui.energyContainer.classList.remove('hidden');
+                    if(state.choices.c1 === 'A') { ui.visualArea.style.backgroundImage = `url('${IMGS.clinic}')`; return "（主角走進診所。明亮的小診所，過程順利。醫療量能消耗低。）"; }
+                    if(state.choices.c1 === 'C') { ui.visualArea.style.backgroundImage = `url('${IMGS.hospital}')`; return "（主角走進醫學中心。候診號碼 186 號。旁邊有重症病患頻繁進出。主角感到格格不入。醫療量能消耗高。）"; }
+                    ui.visualArea.style.backgroundImage = `url('${IMGS.hospital}')`; return "（走進醫院，候診區人比較多。主角有些猶豫，自己是否應該在這裡。）";
+                },
+                options: [{ text: "下一步", next: 4 }]
+            },
+            { // 4
+                speaker: "老師", text: "「醫療量能包括了醫護的時間、病床、設備——這些都是有限資源。如果輕症佔用高層資源，重症病患就可能等不到幫助。」", isFlashback: true, sprite: "👩‍🏫",
+                options: [{ text: "如果大家都去大醫院？", next: 5 }]
+            },
+            { // 5
+                speaker: "", text: "如果輕症重症都去醫學中心，整個醫療系統會發生什麼事？",
+                options: [
+                    { text: "A. 醫療量能嚴重不足", next: 6, choice: ['c2', 'A'] },
+                    { text: "B. 健保費用會大幅增加", next: 6, choice: ['c2', 'B'] },
+                    { text: "C. 醫院自己會調配好", next: 6, choice: ['c2', 'C'] }
+                ]
+            },
+            { // 6
+                speaker: "", text: "（手機螢幕，朋友傳來訊息： 「我最近有點咳嗽，要去醫學中心看，你覺得怎樣？」）", emoji: "📱",
+                options: [
+                    { text: "A. 隨便你，去哪都可以", next: 7, choice: ['c4', 'A'] },
+                    { text: "B. 去診所就好，輕症不需要去大醫院", next: 7, choice: ['c4', 'B'] },
+                    { text: "C. 去大醫院比較安心，去吧", next: 7, choice: ['c4', 'C'] }
+                ]
+            },
+            { // 7
+                speaker: "", text: "（主角陪朋友在診所等候，兩週來了三次沒好轉。醫生表情凝重。）", emoji: "🏥",
+                options: [{ text: "進入閃回：轉診", next: 8 }]
+            },
+            { // 8
+                speaker: "老師", text: "「當診所處置已達極限，正確做法是轉診。轉診是雙向的——病況複雜向上轉，穩定後向下轉回診所追蹤。這才是對病患最好的照護。」", isFlashback: true,
+                options: [{ text: "聽醫師建議", next: 9 }]
+            },
+            { // 9
+                speaker: "醫師", text: "「你的狀況需要進一步檢查，我幫你轉診到地區醫院。」\n朋友在診所兩週沒好轉，你覺得應該：",
+                options: [
+                    { text: "A. 繼續在診所觀察", next: 10, choice: ['c3', 'A'] },
+                    { text: "B. 接受轉診到地區醫院", next: 10, choice: ['c3', 'B'] },
+                    { text: "C. 直接去醫學中心", next: 10, choice: ['c3', 'C'] }
+                ]
+            },
+            { // 10
+                speaker: "健寶", text: "「嗨，我是健寶。你學過的那些……我都看到了。」", bg: IMGS.slime, sprite: "🤖",
+                options: [{ text: "檢視揭示", next: 11 }]
+            },
+            { // 11: 揭示
+                speaker: "健寶", onEnter: () => {
+                    let r = state.choices.c1==='A'?"「你選了診所。你省下的量能，讓一名手術評估病患提前三天得到了安排。」":
+                            state.choices.c1==='C'?"「你選了醫學中心。你等待時，一名需要照CT的病患因此等了超過三小時。」":
+                            "「你選了醫院，但你的病診所就能處理。你讓另一名需要評估的病患多等了一週。」";
+                    return r;
+                },
+                options: [{ text: "繼續", next: 12 }]
+            },
+            { // 12
+                speaker: "健寶", text: "「記住——把每一個人，送到對的地方。不是最大的地方，是最適合他病情的地方。救援開始！」",
+                options: [{ text: "重新開始", next: 0, reset: true }]
+            }
+        ];
+
+        function render() {
+            const data = gameScript[state.step];
+            if (data.bg) ui.visualArea.style.backgroundImage = `url('${data.bg}')`;
+            if (data.isFlashback) { ui.visualArea.classList.add('flashback-active'); ui.flashTag.classList.remove('hidden'); }
+            else { ui.visualArea.classList.remove('flashback-active'); ui.flashTag.classList.add('hidden'); }
+            if (data.sprite) ui.sprite.innerText = data.sprite;
+            ui.speaker.innerText = data.speaker || "";
+            ui.text.innerText = data.onEnter ? data.onEnter() : (data.text || "");
+            if (state.energy > 0) {
+                ui.energyFill.style.width = `${state.energy}%`;
+                ui.energyFill.className = state.energy <= 30 ? "h-full bg-green-400" : state.energy <= 60 ? "h-full bg-yellow-400" : "h-full bg-red-500";
+            }
+            ui.options.innerHTML = '';
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "btn-hover w-full text-left p-3 rounded-lg text-white bg-slate-700 border border-slate-600 font-bold";
+                btn.innerText = opt.text;
+                btn.onclick = () => {
+                    if (opt.choice) state.choices[opt.choice[0]] = opt.choice[1];
+                    if (opt.energy) state.energy = opt.energy;
+                    if (opt.reset) { state.step = 0; state.energy = 0; state.choices = {}; render(); return; }
+                    state.step = opt.next; render();
+                };
+                ui.options.appendChild(btn);
+            });
+        }
+        window.onload = render;
+    </script>
+</body>
+</html>
